@@ -12,6 +12,7 @@ export default function StudentTable({ user }) {
   const [sortField, setSortField] = useState("roll");
   const [sortAsc, setSortAsc] = useState(true);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const rowsPerPage = 5;
 
@@ -22,7 +23,7 @@ export default function StudentTable({ user }) {
 
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(students));
-  }, [students]);
+  }, [students, storageKey]);
 
   const generateRoll = () => {
     return "STU" + String(students.length + 1).padStart(3, "0");
@@ -50,9 +51,16 @@ export default function StudentTable({ user }) {
     return null;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setLoading(true);
     const error = validate();
-    if (error) return showToast(error);
+    if (error) {
+      setLoading(false);
+      return showToast(error);
+    }
+
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const age = calculateAge(form.dob);
 
@@ -68,6 +76,7 @@ export default function StudentTable({ user }) {
     }
 
     setForm({ name: "", email: "", dob: "" });
+    setLoading(false);
   };
 
   const deleteStudent = (index) => {
@@ -157,9 +166,10 @@ export default function StudentTable({ user }) {
 
           <button
             onClick={handleSubmit}
-            className="bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            disabled={loading}
+            className="bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {editing !== null ? "Update" : "Add"}
+            {loading ? "Processing..." : (editing !== null ? "Update" : "Add")}
           </button>
         </div>
       </div>
